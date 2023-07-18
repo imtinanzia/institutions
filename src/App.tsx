@@ -1,26 +1,41 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect, useCallback } from 'react';
+import { SubmissionData, SubjectList } from './components';
+import { Institution, Submission } from './types';
+import { submissionApi, institutionApi } from './__fakeapi__';
+import { useMounted } from './hooks';
 
-function App() {
+const App: React.FC = () => {
+  const mounted = useMounted();
+
+  const [submissions, setSubmission] = useState<Submission[]>([]);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+
+  const getData = useCallback(async () => {
+    try {
+      const submissionResponse = await submissionApi.getSubmissions();
+      const institutionResponse = await institutionApi.getInstitution();
+
+      if (mounted.current) {
+        setSubmission(submissionResponse);
+        setInstitutions(institutionResponse);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, [mounted]);
+
+  useEffect(() => {
+    getData();
+  }, [getData]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Submission Data</h1>
+      <SubmissionData submissions={submissions} institutions={institutions} />
+      <h1 className="text-2xl font-bold my-4">Subject List</h1>
+      <SubjectList submissions={submissions} />
     </div>
   );
-}
+};
 
 export default App;
